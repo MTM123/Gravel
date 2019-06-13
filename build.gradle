@@ -1,0 +1,64 @@
+buildscript {
+    repositories {
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
+    }
+    dependencies {
+        classpath "com.github.jengelman.gradle.plugins:shadow:4.0.2"
+    }
+}
+
+apply plugin: 'java'
+
+group = pluginGroup
+version = pluginVersion
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+apply plugin: "com.github.johnrengelman.shadow"
+
+shadowJar{
+    minimize()
+    relocate 'ninja.leaping.configurate', 'lv.mtm123.cvcancer.ninja.leaping.configurate'
+}
+
+build.dependsOn shadowJar
+
+repositories {
+    mavenCentral()
+    jcenter()
+    maven {
+        name = 'destroystokyo-repo'
+        url = 'https://repo.destroystokyo.com/repository/maven-public/'
+    }
+    maven {
+        name = 'sonatype'
+        url = 'https://oss.sonatype.org/content/groups/public/'
+    }
+    maven {
+        name = 'ess'
+        url = 'https://ci.ender.zone/plugin/repository/everything/'
+    }
+    maven {
+        name = 'sponge'
+        url = 'https://repo.spongepowered.org/maven'
+    }
+}
+
+dependencies {
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+    compileOnly 'com.destroystokyo.paper:paper-api:1.13.2-R0.1-SNAPSHOT'
+    compile 'net.dv8tion:JDA:4.ALPHA.0_98'
+    compileOnly 'net.ess3:EssentialsX:2.16.1'
+    compile 'org.spongepowered:configurate-yaml:3.4-SNAPSHOT'
+}
+
+import org.apache.tools.ant.filters.ReplaceTokens
+
+processResources {
+    from(sourceSets.main.resources.srcDirs) {
+        filter ReplaceTokens, tokens: [version: version]
+    }
+}

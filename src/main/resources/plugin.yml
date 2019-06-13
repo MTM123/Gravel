@@ -1,0 +1,8 @@
+name: CVCancer
+version: @version@
+main: lv.mtm123.cvcancer.CVCancer
+api-version: 1.13
+authors: [MTM123]
+softdepend: [Essentials]
+description: Adds random features
+website: https://mtm123.lv
