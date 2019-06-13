@@ -85,7 +85,7 @@ public final class CVCancer extends JavaPlugin {
 
     private void initJDA(String token) {
         try {
-            JDA jda = new JDABuilder("NTg1ODY5NjI5NzIxOTM1ODc1.XPfvyA.-XC7oVfZU5E6OlXGvXloBlITKCI").build();
+            JDA jda = new JDABuilder(token).build();
             jda.addEventListener(new MessageListener(this));
         } catch (LoginException e) {
             e.printStackTrace();
