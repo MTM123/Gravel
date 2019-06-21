@@ -6,17 +6,17 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 
 public class PlayerListener implements Listener {
+
     private final CVCancer plugin;
 
     public PlayerListener(CVCancer plugin) {
         this.plugin = plugin;
     }
 
-    
-
     @EventHandler(ignoreCancelled = true)
     public void onNickChange(NickChangeEvent event) {
         event.getAffected().getBase().setPlayerListName(event.getValue());
         //TODO: implement "persistent" nicknames
     }
+
 }

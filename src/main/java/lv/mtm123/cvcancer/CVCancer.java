@@ -13,6 +13,7 @@ import ninja.leaping.configurate.objectmapping.ObjectMapper;
 import ninja.leaping.configurate.objectmapping.ObjectMappingException;
 import ninja.leaping.configurate.yaml.YAMLConfigurationLoader;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
@@ -29,6 +30,7 @@ import java.util.Map;
 import java.util.logging.Level;
 
 public final class CVCancer extends JavaPlugin {
+
     private Config config;
     private JDA jda;
     private Essentials essentials;
@@ -52,10 +54,10 @@ public final class CVCancer extends JavaPlugin {
         }
 
         initJDA(config.getBotToken());
-    
+
         Bukkit.getPluginManager().registerEvents(new PlayerListener(this), this);
         Bukkit.getPluginManager().registerEvents(new ChatListener(this, config.getWebhookUrl()), this);
-		Bukkit.getPluginManager().registerEvents(new ServerStatusListener(this, jda), this);
+        Bukkit.getPluginManager().registerEvents(new ServerStatusListener(this, jda), this);
     }
 
     @Override
@@ -92,8 +94,9 @@ public final class CVCancer extends JavaPlugin {
     private void initJDA(String token) {
         try {
             jda = new JDABuilder(token).build();
+            jda.awaitReady();
             jda.addEventListener(new MessageListener(this));
-        } catch (LoginException e) {
+        } catch (LoginException | InterruptedException e) {
             e.printStackTrace();
         }
     }
@@ -144,7 +147,8 @@ public final class CVCancer extends JavaPlugin {
     }
 
     public String getPlayerDiscordDisplayName(Player player) {
-		String nickname = essentials.getUser(player).getNickname();
-		return nickname == null ? player.getName() : nickname;
-	}
+        String nickname = essentials.getUser(player).getNickname();
+        return nickname == null ? player.getName() : ChatColor.stripColor(nickname);
+    }
+
 }
