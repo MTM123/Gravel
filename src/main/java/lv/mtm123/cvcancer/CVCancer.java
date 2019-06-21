@@ -3,15 +3,20 @@ package lv.mtm123.cvcancer;
 import com.earth2me.essentials.Essentials;
 import lv.mtm123.cvcancer.config.Config;
 import lv.mtm123.cvcancer.jda.listeners.MessageListener;
+import lv.mtm123.cvcancer.listeners.ChatListener;
 import lv.mtm123.cvcancer.listeners.PlayerListener;
+import lv.mtm123.cvcancer.listeners.ServerStatusListener;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import ninja.leaping.configurate.commented.SimpleCommentedConfigurationNode;
 import ninja.leaping.configurate.objectmapping.ObjectMapper;
 import ninja.leaping.configurate.objectmapping.ObjectMappingException;
 import ninja.leaping.configurate.yaml.YAMLConfigurationLoader;
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.ShapelessRecipe;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -26,7 +31,9 @@ import java.util.logging.Level;
 
 public final class CVCancer extends JavaPlugin {
 
-    private Config config = null;
+    private Config config;
+    private JDA jda;
+    private Essentials essentials;
 
     @Override
     public void onEnable() {
@@ -35,26 +42,27 @@ public final class CVCancer extends JavaPlugin {
             getLogger().log(Level.SEVERE, "Essentials not found! Disabling...");
             return;
         }
+        essentials = (Essentials) getServer().getPluginManager().getPlugin("Essentials");
 
         registerCustomRecipes();
 
         try {
             config = loadConfig();
         } catch (ObjectMappingException | IOException e) {
-            e.printStackTrace();
-            getLogger().log(Level.SEVERE, "Failed to load config!");
+            getLogger().log(Level.SEVERE, "Failed to load config!", e);
+            return;
         }
 
-        if (config != null) {
-            initJDA(config.getBotToken());
-        }
+        initJDA(config.getBotToken());
 
-        getServer().getPluginManager().registerEvents(new PlayerListener(this, config.getWebhookUrl()), this);
+        Bukkit.getPluginManager().registerEvents(new PlayerListener(this), this);
+        Bukkit.getPluginManager().registerEvents(new ChatListener(this, config.getWebhookUrl()), this);
+        Bukkit.getPluginManager().registerEvents(new ServerStatusListener(this, jda), this);
     }
 
     @Override
     public void onDisable() {
-        // Plugin shutdown logic
+        jda.shutdownNow();
     }
 
     private Config loadConfig() throws ObjectMappingException, IOException {
@@ -85,9 +93,10 @@ public final class CVCancer extends JavaPlugin {
 
     private void initJDA(String token) {
         try {
-            JDA jda = new JDABuilder(token).build();
+            jda = new JDABuilder(token).build();
+            jda.awaitReady();
             jda.addEventListener(new MessageListener(this));
-        } catch (LoginException e) {
+        } catch (LoginException | InterruptedException e) {
             e.printStackTrace();
         }
     }
@@ -134,7 +143,12 @@ public final class CVCancer extends JavaPlugin {
     }
 
     public Essentials getEssentials() {
-        return (Essentials) getServer().getPluginManager().getPlugin("Essentials");
+        return essentials;
+    }
+
+    public String getPlayerDiscordDisplayName(Player player) {
+        String nickname = essentials.getUser(player).getNickname();
+        return nickname == null ? player.getName() : ChatColor.stripColor(nickname);
     }
 
 }

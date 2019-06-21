@@ -6,10 +6,10 @@ import ninja.leaping.configurate.objectmapping.serialize.ConfigSerializable;
 @ConfigSerializable
 public class Config {
 
-    @Setting(value = "bot-token")
+    @Setting("bot-token")
     private String botToken = "REPLACE WITH BOT TOKEN";
 
-    @Setting(value = "webhook-url")
+    @Setting("webhook-url")
     private String webhookUrl = "REPLACE WITH WEBHOOKURL";
 
     public String getBotToken() {

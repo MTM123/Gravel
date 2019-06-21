@@ -53,6 +53,8 @@ dependencies {
     compile 'net.dv8tion:JDA:4.ALPHA.0_98'
     compileOnly 'net.ess3:EssentialsX:2.16.1'
     compile 'org.spongepowered:configurate-yaml:3.4-SNAPSHOT'
+    compile 'org.apache.httpcomponents:httpclient:4.5.9'
+    compile 'commons-logging:commons-logging:1.2'
 }
 
 import org.apache.tools.ant.filters.ReplaceTokens

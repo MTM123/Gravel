@@ -19,29 +19,18 @@ public class MessageListener extends ListenerAdapter {
     @Override
     public void onGuildMessageReceived(@Nonnull GuildMessageReceivedEvent event) {
 
-        if (event.getMessage().getAuthor().isBot()) {
+        if (event.getChannel().getIdLong() != 585816708954980360L
+                || event.getMessage().getAuthor().isBot()) {
             return;
         }
 
-        if (event.getChannel().getIdLong() != 585816708954980360L) {
-            return;
-        }
+        String name = event.getMember() == null
+                ? event.getAuthor().getName()
+                : event.getMember().getEffectiveName();
+        String message = ChatColor.translateAlternateColorCodes('&', event.getMessage().getContentStripped());
 
-        String name;
-
-        if (event.getMember() == null) {
-            name = event.getAuthor().getName();
-        } else {
-            name = event.getMember().getEffectiveName();
-        }
-
-
-        Bukkit.getScheduler().runTask(plugin, () -> Bukkit.broadcastMessage(ChatColor.translateAlternateColorCodes('&',
-                String.format("&6[&7DC&6]&r<%s> %s",
-                        name,
-                        event.getMessage().getContentStripped()))));
-
-
+        Bukkit.getScheduler().runTask(plugin, () -> Bukkit.broadcastMessage(String.format("<%s> %s",
+                ChatColor.GRAY + "@" + ChatColor.RESET + name, message)));
     }
 
 }
