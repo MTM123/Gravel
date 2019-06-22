@@ -41,7 +41,11 @@ public class ChatListener implements Listener {
         }
 
         JsonObject json = new JsonObject();
-        json.addProperty("content", ChatColor.stripColor(event.getMessage()));
+        String msg = event.getMessage()
+                .replace("@everyone", "at-everyone")
+                .replace("@here", "at-here");
+
+        json.addProperty("content", ChatColor.stripColor(msg));
         json.addProperty("username", ChatColor.stripColor(plugin.getPlayerDiscordDisplayName(event.getPlayer())));
 
         byte[] data = json.toString().getBytes(StandardCharsets.UTF_8);
