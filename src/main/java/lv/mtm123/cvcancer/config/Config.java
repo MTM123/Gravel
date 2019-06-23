@@ -12,6 +12,20 @@ public class Config {
     @Setting("webhook-url")
     private String webhookUrl = "REPLACE WITH WEBHOOKURL";
 
+    @Setting("channels.status-id")
+    private long statusChannel = 592147576665538599L;
+
+    @Setting("channels.link-id")
+    private long chatLinkChannel = 592166955432017920L;
+
+    public long getStatusChannel() {
+        return statusChannel;
+    }
+
+    public long getChatLinkChannel() {
+        return chatLinkChannel;
+    }
+
     public String getBotToken() {
         return botToken;
     }

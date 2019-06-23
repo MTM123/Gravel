@@ -53,6 +53,7 @@ dependencies {
     compile 'net.dv8tion:JDA:4.ALPHA.0_98'
     compileOnly 'net.ess3:EssentialsX:2.16.1'
     compile 'org.spongepowered:configurate-yaml:3.4-SNAPSHOT'
+    compile 'club.minnced:discord-webhooks:0.1.7'
 }
 
 import org.apache.tools.ant.filters.ReplaceTokens
