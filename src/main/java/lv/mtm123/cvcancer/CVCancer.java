@@ -22,6 +22,7 @@ import org.bukkit.inventory.ShapelessRecipe;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.yaml.snakeyaml.DumperOptions;
 
+import javax.annotation.Nullable;
 import javax.security.auth.login.LoginException;
 import java.io.File;
 import java.io.IOException;
@@ -32,12 +33,12 @@ import java.util.logging.Level;
 public final class CVCancer extends JavaPlugin {
 
     private Config config;
+    @Nullable
     private JDA jda;
     private Essentials essentials;
 
     @Override
     public void onEnable() {
-
         if (!getServer().getPluginManager().isPluginEnabled("Essentials")) {
             getLogger().log(Level.SEVERE, "Essentials not found! Disabling...");
             return;
@@ -55,20 +56,28 @@ public final class CVCancer extends JavaPlugin {
 
         initJDA(config.getBotToken());
 
+        if (jda == null) {
+            getLogger().log(Level.SEVERE, "Unable to connect to JDA! Disabling...");
+            setEnabled(false);
+            return;
+        }
+
         Bukkit.getPluginManager().registerEvents(new PlayerListener(this), this);
-        Bukkit.getPluginManager().registerEvents(new ChatListener(this, config.getWebhookUrl()), this);
-        Bukkit.getPluginManager().registerEvents(new ServerStatusListener(this, jda), this);
+        Bukkit.getPluginManager().registerEvents(new ChatListener(this, jda, config), this);
+        Bukkit.getPluginManager().registerEvents(new ServerStatusListener(this, jda, config), this);
     }
 
     @Override
     public void onDisable() {
-        jda.shutdownNow();
+        if (jda != null) {
+            jda.shutdownNow();
+        }
     }
 
     private Config loadConfig() throws ObjectMappingException, IOException {
-
         File mainDir = getDataFolder().getAbsoluteFile();
         if (!mainDir.exists()) {
+            //noinspection ResultOfMethodCallIgnored - Not interested in knowing the result
             mainDir.mkdirs();
         }
 
@@ -95,9 +104,9 @@ public final class CVCancer extends JavaPlugin {
         try {
             jda = new JDABuilder(token).build();
             jda.awaitReady();
-            jda.addEventListener(new MessageListener(this));
+            jda.addEventListener(new MessageListener(this, config));
         } catch (LoginException | InterruptedException e) {
-            e.printStackTrace();
+            getLogger().severe("Unable to init JDA. Reason: " + e.getMessage());
         }
     }
 

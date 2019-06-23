@@ -1,6 +1,7 @@
 package lv.mtm123.cvcancer.listeners;
 
 import lv.mtm123.cvcancer.CVCancer;
+import lv.mtm123.cvcancer.config.Config;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.MessageBuilder;
@@ -27,14 +28,16 @@ public class ServerStatusListener implements Listener {
     private final JDA jda;
     private final TextChannel statusChannel;
     private final long statusMessage;
+    private final Config config;
 
-    public ServerStatusListener(CVCancer plugin, JDA jda) {
+    public ServerStatusListener(CVCancer plugin, JDA jda, Config config) {
         this.plugin = plugin;
         this.jda = jda;
+        this.config = config;
 
-        statusChannel = jda.getTextChannelById(591299385380569108L);
+        statusChannel = jda.getTextChannelById(config.getStatusChannel());
         if (statusChannel == null) {
-            throw new AssertionError("An invalid status channel ID was hardcoded");
+            throw new AssertionError("An invalid status channel ID was introduced");
         }
 
         statusMessage = statusChannel.hasLatestMessage()
@@ -60,9 +63,10 @@ public class ServerStatusListener implements Listener {
 
     private void update() {
         Collection<? extends Player> players = Bukkit.getOnlinePlayers();
+        boolean isOnePlayer = players.size() == 1;
 
         jda.getPresence().setActivity(Activity.playing(players.isEmpty()
-                ? "alone" : "with " + players.size() + " other(s)"));
+                ? "alone" : "with " + players.size() + " other" + (!isOnePlayer ? "s" : "")));
 
         EmbedBuilder embed = new EmbedBuilder()
                 .setAuthor("Server Status")
@@ -79,7 +83,7 @@ public class ServerStatusListener implements Listener {
                         })
                         .collect(Collectors.joining(", ")), false);
 
-        Message m = new MessageBuilder().setContent(".").setEmbed(embed.build()).build();
+        Message m = new MessageBuilder().setContent("\u200B").setEmbed(embed.build()).build();
         statusChannel.editMessageById(statusMessage, m).queue();
     }
 
