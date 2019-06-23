@@ -341,6 +341,8 @@ public class MarkdownConverter {
             case "***":
                 start.add(ChatColor.BOLD);
                 start.add(ChatColor.ITALIC);
+                break;
+
             case "__":
                 start.add(ChatColor.UNDERLINE);
                 break;

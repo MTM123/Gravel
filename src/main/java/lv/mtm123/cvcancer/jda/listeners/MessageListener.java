@@ -21,7 +21,6 @@ public class MessageListener extends ListenerAdapter {
         this.plugin = plugin;
         this.config = config;
         this.converter = new MarkdownConverter();
-
     }
 
     @Override
@@ -41,8 +40,7 @@ public class MessageListener extends ListenerAdapter {
         Bukkit.getScheduler().runTask(plugin,
                 () -> {
                     BaseComponent[] msg = new ComponentBuilder("<" +
-                            ChatColor.GRAY + "@" + name + ChatColor.RESET +
-                            ">")
+                            ChatColor.GRAY + "@" + ChatColor.RESET + name + ">")
                             .event(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
                                     new BaseComponent[]{new TextComponent(
                                             ChatColor.GRAY + "Click here to mention this user")}))
