@@ -38,10 +38,10 @@ repositories {
         name = 'sonatype'
         url = 'https://oss.sonatype.org/content/groups/public/'
     }
-    maven {
-        name = 'ess'
-        url = 'https://ci.ender.zone/plugin/repository/everything/'
-    }
+//    maven {
+//        name = 'ess'
+//        url = 'https://ci.ender.zone/plugin/repository/everything/'
+//    }
     maven {
         name = 'sponge'
         url = 'https://repo.spongepowered.org/maven'

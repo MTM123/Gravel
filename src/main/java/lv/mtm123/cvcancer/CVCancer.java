@@ -36,13 +36,17 @@ import java.util.Map;
 import java.util.logging.Level;
 
 public final class CVCancer extends JavaPlugin {
-
     private Config config;
     @Nullable
     private JDA jda;
     private Essentials essentials;
     private ObjectMapper<Config>.BoundInstance configMapperInstance;
     private YAMLConfigurationLoader configLoader;
+
+    @Nullable
+    public JDA getJda() {
+        return jda;
+    }
 
     public Config getPluginConfig() {
         return config;

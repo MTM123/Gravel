@@ -11,6 +11,8 @@ import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import java.awt.*;
 import java.time.Instant;
 
+import static lv.mtm123.cvcancer.jda.listeners.MessageListener.getUpdatePlayersRunnable;
+
 public class MentionsCommand extends BaseCommand {
 
     private Config config;
@@ -56,6 +58,11 @@ public class MentionsCommand extends BaseCommand {
 
         replyWithEmbed(event, String.format("You have %s MC notifications!",
                 toEnable ? "enabled" : "disabled"));
+
+        if (getUpdatePlayersRunnable() != null) {
+            //Update our fake Essentials players
+            getUpdatePlayersRunnable().run();
+        }
     }
 
     private void replyWithEmbed(MessageReceivedEvent event, String msg) {
