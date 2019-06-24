@@ -27,6 +27,7 @@ shadowJar{
 build.dependsOn shadowJar
 
 repositories {
+    mavenLocal()
     mavenCentral()
     jcenter()
     maven {
@@ -54,6 +55,7 @@ dependencies {
     compileOnly 'net.ess3:EssentialsX:2.16.1'
     compile 'org.spongepowered:configurate-yaml:3.4-SNAPSHOT'
     compile 'club.minnced:discord-webhooks:0.1.7'
+    compile 'co.aikar:acf-jda:0.5.0-SNAPSHOT'
 }
 
 import org.apache.tools.ant.filters.ReplaceTokens
