@@ -46,7 +46,8 @@ public class MessageListener extends ListenerAdapter {
                                             ChatColor.GRAY + "Click here to mention this user")}))
                             .event(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "@" + name + " "))
                             .append(" ")
-                            .append(message).create();
+                            .append(TextComponent.fromLegacyText(message), ComponentBuilder.FormatRetention.NONE)
+                            .create();
                     Bukkit.broadcast(msg);
                 });
     }
