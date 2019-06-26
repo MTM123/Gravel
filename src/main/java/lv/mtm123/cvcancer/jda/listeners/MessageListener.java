@@ -1,26 +1,27 @@
 package lv.mtm123.cvcancer.jda.listeners;
 
+import com.earth2me.essentials.Essentials;
 import com.earth2me.essentials.User;
+import com.earth2me.essentials.messaging.IMessageRecipient;
 import lv.mtm123.cvcancer.CVCancer;
 import lv.mtm123.cvcancer.config.Config;
+import lv.mtm123.cvcancer.jda.JdaUtils;
 import lv.mtm123.cvcancer.jda.MarkdownConverter;
 import lv.mtm123.cvcancer.players.DiscordPlayer;
-import net.dv8tion.jda.api.entities.TextChannel;
-import net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent;
-import net.dv8tion.jda.api.events.guild.member.GuildMemberLeaveEvent;
+import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
+import net.dv8tion.jda.api.events.message.priv.PrivateMessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.md_5.bungee.api.chat.*;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 
 import javax.annotation.Nonnull;
-import java.util.ArrayList;
-import java.util.stream.Collectors;
+
+import static com.earth2me.essentials.I18n.tl;
 
 public class MessageListener extends ListenerAdapter {
 
-    private static Runnable updatePlayers;
     private final CVCancer plugin;
     private final Config config;
     private final MarkdownConverter converter;
@@ -29,54 +30,72 @@ public class MessageListener extends ListenerAdapter {
         this.plugin = plugin;
         this.config = config;
         this.converter = new MarkdownConverter();
-        updatePlayers = this::reconstructDiscordPlayers;
-        reconstructDiscordPlayers();
-    }
-
-    public static Runnable getUpdatePlayersRunnable() {
-        return updatePlayers;
     }
 
     @Override
-    public void onGuildMemberJoin(@Nonnull GuildMemberJoinEvent event) {
-        super.onGuildMemberJoin(event);
-        //Update our custom users
-        reconstructDiscordPlayers();
-    }
+    public void onPrivateMessageReceived(@Nonnull PrivateMessageReceivedEvent event) {
+        if (event.getMessage().getAuthor().isBot()) return;
 
-    @Override
-    public void onGuildMemberLeave(@Nonnull GuildMemberLeaveEvent event) {
-        super.onGuildMemberLeave(event);
-        //Update our custom users
-        reconstructDiscordPlayers();
-    }
+        DiscordPlayer sender = plugin.getDiscordPlayerManager().getDiscordPlayer(event.getAuthor().getIdLong());
 
-    private void reconstructDiscordPlayers() {
-        assert plugin.getJda() != null;
-        TextChannel link = plugin.getJda().getTextChannelById(config.getChatLinkChannel());
+        if (sender == null) return;
 
-        if (link != null) {
-            ArrayList<DiscordPlayer> players =
-                    link.getMembers().stream()
-                            .filter(m -> !m.getUser().isBot())
-                            .filter(m -> !config.getChatLinkMentionExclusions().contains(m.getIdLong()))
-                            .map(DiscordPlayer::new)
-                            .collect(Collectors.toCollection(ArrayList::new));
+        User essSender = plugin.getEssentials().getUser(sender);
+        if (essSender == null) return;
 
-            plugin.getEssentials().getCustomPlayers().clear();
-            for (DiscordPlayer essPlayer : players) {
-                plugin.getEssentials().addCustomPlayer(essPlayer);
-                User user = plugin.getEssentials().getUser(essPlayer);
-                user.setNPC(true);
-                user.setTeleportEnabled(false);
-                user.setAutoTeleportEnabled(false);
-            }
+        if (essSender.getReplyRecipient() == null || !essSender.getReplyRecipient().isReachable()) {
+            MessageEmbed embed = JdaUtils.getReplyEmbedBuilder()
+                    .setDescription("Unable to find anyone to reply to.\n\n" +
+                            "If you want to start a conversation, please use `-msg <name>` in here.")
+                    .setFooter("Requested by: You", event.getAuthor().getEffectiveAvatarUrl()).build();
+
+            event.getChannel().sendMessage(embed).queue();
+            return;
+        }
+
+        //We either got a message or a command. Ignore message commands
+        if (event.getMessage().getContentStripped().startsWith("-message") || event.getMessage().getContentStripped().startsWith("-msg"))
+            return;
+
+
+        String message = event.getMessage().getContentRaw();
+        IMessageRecipient.MessageResponse messageResponse = essSender.getReplyRecipient().onReceiveMessage(essSender, message);
+
+        switch (messageResponse) {
+            case MESSAGES_IGNORED:
+            case SENDER_IGNORED:
+            case UNREACHABLE:
+                MessageEmbed embed = JdaUtils.getReplyEmbedBuilder()
+                        .setDescription("Unable to reply to this person.\n\n" +
+                                "If you want to start a conversation, please use `-msg <name>` in here.")
+                        .setFooter("Requested by: You", event.getAuthor().getEffectiveAvatarUrl()).build();
+
+                event.getChannel().sendMessage(embed).queue();
+                break;
+            default:
+                User recipientUser = plugin.getEssentials().getUser(essSender.getReplyRecipient().getName());
+                // Dont spy on chats involving socialspy exempt players
+                if (!essSender.isAuthorized("essentials.chat.spy.exempt") && recipientUser != null && !recipientUser.isAuthorized("essentials.chat.spy.exempt")) {
+                    Essentials ess = plugin.getEssentials();
+                    for (User onlineUser : ess.getOnlineUsers()) {
+                        if (onlineUser.isSocialSpyEnabled()
+                                // Don't send socialspy messages to message sender/receiver to prevent spam
+                                && !onlineUser.equals(essSender)
+                                && !onlineUser.equals(recipientUser)) {
+                            if (essSender.isMuted() && ess.getSettings().getSocialSpyListenMutedPlayers()) {
+                                onlineUser.sendMessage(tl("socialMutedSpyPrefix") + tl("socialSpyMsgFormat", sender.getName(), recipientUser.getDisplayName(), message));
+                            } else {
+                                onlineUser.sendMessage(tl("socialSpyPrefix") + tl("socialSpyMsgFormat", sender.getName(), recipientUser.getDisplayName(), message));
+                            }
+                        }
+                    }
+                }
+                break;
         }
     }
 
     @Override
     public void onGuildMessageReceived(@Nonnull GuildMessageReceivedEvent event) {
-
         if (event.getChannel().getIdLong() != config.getChatLinkChannel()
                 || event.getMessage().getAuthor().isBot()) {
             return;

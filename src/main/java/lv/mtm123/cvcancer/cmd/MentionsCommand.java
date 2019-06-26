@@ -4,14 +4,13 @@ import co.aikar.commands.BaseCommand;
 import co.aikar.commands.annotation.CommandAlias;
 import lv.mtm123.cvcancer.CVCancer;
 import lv.mtm123.cvcancer.config.Config;
-import net.dv8tion.jda.api.EmbedBuilder;
+import lv.mtm123.cvcancer.jda.JdaUtils;
+import lv.mtm123.cvcancer.players.DiscordPlayer;
+import lv.mtm123.cvcancer.players.DiscordPlayerManager;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
-import java.awt.*;
-import java.time.Instant;
-
-import static lv.mtm123.cvcancer.jda.listeners.MessageListener.getUpdatePlayersRunnable;
+import java.util.Objects;
 
 public class MentionsCommand extends BaseCommand {
 
@@ -59,18 +58,21 @@ public class MentionsCommand extends BaseCommand {
         replyWithEmbed(event, String.format("You have %s MC notifications!",
                 toEnable ? "enabled" : "disabled"));
 
-        if (getUpdatePlayersRunnable() != null) {
-            //Update our fake Essentials players
-            getUpdatePlayersRunnable().run();
+        DiscordPlayerManager manager = plugin.getDiscordPlayerManager();
+        DiscordPlayer player = manager.getDiscordPlayer(Objects.requireNonNull(event.getMember()));
+        if (toEnable) {
+            //User enabled back their mentions. Add it
+            manager.showDiscordPlayer(player);
+        } else {
+            //User disabled mentions. Hide it from players
+            manager.hideDiscordPlayer(player);
         }
     }
 
     private void replyWithEmbed(MessageReceivedEvent event, String msg) {
         String effectiveName = event.getMember() != null ? event.getMember().getEffectiveName() :
                 event.getAuthor().getName();
-        MessageEmbed embed = new EmbedBuilder()
-                .setColor(new Color(240, 71, 71)) //DND color
-                .setTimestamp(Instant.now())
+        MessageEmbed embed = JdaUtils.getReplyEmbedBuilder()
                 .setDescription(msg)
                 .setFooter("Requested by: " + effectiveName, event.getAuthor().getEffectiveAvatarUrl()).build();
         event.getMessage().getChannel().sendMessage(embed).queue();

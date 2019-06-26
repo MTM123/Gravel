@@ -2,6 +2,8 @@ package lv.mtm123.cvcancer;
 
 import co.aikar.commands.CommandConfig;
 import co.aikar.commands.JDACommandManager;
+import com.comphenix.protocol.ProtocolLibrary;
+import com.comphenix.protocol.ProtocolManager;
 import com.earth2me.essentials.Essentials;
 import lv.mtm123.cvcancer.cmd.MentionsCommand;
 import lv.mtm123.cvcancer.config.Config;
@@ -9,6 +11,7 @@ import lv.mtm123.cvcancer.jda.listeners.MessageListener;
 import lv.mtm123.cvcancer.listeners.ChatListener;
 import lv.mtm123.cvcancer.listeners.PlayerListener;
 import lv.mtm123.cvcancer.listeners.ServerStatusListener;
+import lv.mtm123.cvcancer.players.DiscordPlayerManager;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.OnlineStatus;
@@ -36,12 +39,19 @@ import java.util.Map;
 import java.util.logging.Level;
 
 public final class CVCancer extends JavaPlugin {
+    private static CVCancer instance;
+    private ProtocolManager protocolManager;
     private Config config;
     @Nullable
     private JDA jda;
     private Essentials essentials;
     private ObjectMapper<Config>.BoundInstance configMapperInstance;
     private YAMLConfigurationLoader configLoader;
+    private DiscordPlayerManager discordPlayerManager;
+
+    public static CVCancer getPluginInstance() {
+        return instance;
+    }
 
     @Nullable
     public JDA getJda() {
@@ -58,6 +68,8 @@ public final class CVCancer extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        instance = this;
+        protocolManager = ProtocolLibrary.getProtocolManager();
         if (!getServer().getPluginManager().isPluginEnabled("Essentials")) {
             getLogger().log(Level.SEVERE, "Essentials not found! Disabling...");
             setEnabled(false);
@@ -123,8 +135,13 @@ public final class CVCancer extends JavaPlugin {
     @Override
     public void onDisable() {
         if (jda != null) {
-            jda.shutdownNow();
+            try {
+                jda.shutdownNow();
+            } catch (Exception ignored) {
+
+            }
         }
+        instance = null;
     }
 
     public YAMLConfigurationLoader getConfigLoader() {
@@ -171,6 +188,10 @@ public final class CVCancer extends JavaPlugin {
     }
 
 
+    public DiscordPlayerManager getDiscordPlayerManager() {
+        return discordPlayerManager;
+    }
+
     private void initJDA(String token) {
         try {
             jda = new JDABuilder(token).build();
@@ -183,6 +204,8 @@ public final class CVCancer extends JavaPlugin {
             registerJdaCommands(commandManager);
 
             jda.addEventListener(new MessageListener(this, config));
+            discordPlayerManager = new DiscordPlayerManager(this, config);
+            jda.addEventListener(discordPlayerManager);
         } catch (LoginException | InterruptedException e) {
             getLogger().severe("Unable to init JDA. Reason: " + e.getMessage());
         }
@@ -242,4 +265,7 @@ public final class CVCancer extends JavaPlugin {
         return nickname == null ? player.getName() : ChatColor.stripColor(nickname);
     }
 
+    public ProtocolManager getProtocolManager() {
+        return protocolManager;
+    }
 }

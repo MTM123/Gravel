@@ -1,9 +1,19 @@
 package lv.mtm123.cvcancer.players;
 
+import com.comphenix.protocol.ProtocolManager;
+import com.comphenix.protocol.reflect.accessors.Accessors;
+import com.comphenix.protocol.reflect.accessors.FieldAccessor;
+import com.comphenix.protocol.utility.MinecraftReflection;
+import com.comphenix.protocol.wrappers.EnumWrappers;
+import com.comphenix.protocol.wrappers.PlayerInfoData;
+import com.comphenix.protocol.wrappers.WrappedChatComponent;
+import com.comphenix.protocol.wrappers.WrappedGameProfile;
 import com.destroystokyo.paper.Title;
 import com.destroystokyo.paper.block.TargetBlockInfo;
 import com.destroystokyo.paper.entity.TargetEntityInfo;
 import com.destroystokyo.paper.profile.PlayerProfile;
+import lv.mtm123.cvcancer.CVCancer;
+import lv.mtm123.cvcancer.players.packets.WrapperPlayServerPlayerInfo;
 import net.dv8tion.jda.api.entities.Member;
 import net.md_5.bungee.api.chat.BaseComponent;
 import org.bukkit.*;
@@ -38,19 +48,33 @@ import org.bukkit.util.RayTraceResult;
 import org.bukkit.util.Vector;
 
 import javax.annotation.Nullable;
+import java.lang.reflect.InvocationTargetException;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 public class DiscordPlayer implements Player {
+    private final Integer entityId;
     private Member discordMember;
     private Location emptyLoc;
     private UUID discordUuid;
+    private static final FieldAccessor ENTITY_ID = Accessors.getFieldAccessor(
+            MinecraftReflection.getEntityClass(), "entityCount", true);
 
-    public DiscordPlayer(Member discordMember) {
+    DiscordPlayer(Member discordMember) {
         this.discordMember = discordMember;
         discordUuid = UUID.nameUUIDFromBytes(discordMember.getId().getBytes(StandardCharsets.UTF_8));
         emptyLoc = new Location(Bukkit.getWorlds().get(0), 0, 0, 0);
+
+        entityId = getUniqueEntityId();
+    }
+
+    private static Integer getUniqueEntityId() {
+        Integer id = (Integer) ENTITY_ID.get(null);
+
+        // Increment next entity ID
+        ENTITY_ID.set(null, id + 1);
+        return id;
     }
 
     public Member getDiscordMember() {
@@ -887,7 +911,7 @@ public class DiscordPlayer implements Player {
 
     @Override
     public int getEntityId() {
-        return 0;
+        return entityId;
     }
 
     @Override
@@ -1880,5 +1904,48 @@ public class DiscordPlayer implements Player {
     @Override
     public <T extends Projectile> T launchProjectile(Class<? extends T> projectile, Vector velocity) {
         return null;
+    }
+
+    void createFakeEntity(Player... players) {
+        sendPlayerInfoPacket(EnumWrappers.PlayerInfoAction.ADD_PLAYER, players);
+    }
+
+    void destroyFakeEntity(Player... players) {
+        sendPlayerInfoPacket(EnumWrappers.PlayerInfoAction.REMOVE_PLAYER, players);
+    }
+
+    private void sendPlayerInfoPacket(EnumWrappers.PlayerInfoAction action, Player[] targets) {
+        ProtocolManager manager = CVCancer.getPluginInstance().getProtocolManager();
+
+        WrapperPlayServerPlayerInfo playerInfo = new WrapperPlayServerPlayerInfo();
+        playerInfo.setAction(action);
+        playerInfo.setData(Collections.singletonList(new PlayerInfoData(
+                new WrappedGameProfile(getUniqueId(), getName()),
+                0,
+                EnumWrappers.NativeGameMode.SURVIVAL,
+                WrappedChatComponent.fromText(getName())
+        )));
+
+
+        for (Player p : targets) {
+            try {
+                manager.sendServerPacket(p, playerInfo.getHandle());
+
+                if (action == EnumWrappers.PlayerInfoAction.ADD_PLAYER) {
+                    WrapperPlayServerPlayerInfo playerDisplay = new WrapperPlayServerPlayerInfo();
+                    playerDisplay.setAction(EnumWrappers.PlayerInfoAction.UPDATE_DISPLAY_NAME);
+                    playerDisplay.setData(Collections.singletonList(new PlayerInfoData(
+                            new WrappedGameProfile(getUniqueId(), getName()),
+                            0,
+                            EnumWrappers.NativeGameMode.SURVIVAL,
+                            WrappedChatComponent.fromText(ChatColor.GRAY + getName()/*.substring(1)*/ + " on Discord")
+                    )));
+                    manager.sendServerPacket(p, playerDisplay.getHandle());
+                }
+
+            } catch (InvocationTargetException e) {
+                CVCancer.getPluginInstance().getLogger().severe("Unable to send packets to player: " + e.getMessage());
+            }
+        }
     }
 }
