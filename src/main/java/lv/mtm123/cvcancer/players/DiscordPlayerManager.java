@@ -74,6 +74,7 @@ public class DiscordPlayerManager extends ListenerAdapter {
     }
 
     private void prepareEssentialsPlayer(DiscordPlayer player) {
+        plugin.getEssentials().removeCustomPlayer(player);
         plugin.getEssentials().addCustomPlayer(player);
         User user = plugin.getEssentials().getUser(player);
         user.setNPC(true);
@@ -86,19 +87,22 @@ public class DiscordPlayerManager extends ListenerAdapter {
         return visiblePlayers;
     }
 
+    public void showDiscordPlayer(DiscordPlayer player) {
+        prepareEssentialsPlayer(player);
+        player.createFakeEntity(Bukkit.getOnlinePlayers().toArray(new Player[]{}));
+        visiblePlayers.add(player);
+    }
+
     public void hideDiscordPlayer(DiscordPlayer player) {
         player.destroyFakeEntity(Bukkit.getOnlinePlayers().toArray(new Player[]{}));
         visiblePlayers.remove(player);
-    }
-
-    public void showDiscordPlayer(DiscordPlayer player) {
-        player.createFakeEntity(Bukkit.getOnlinePlayers().toArray(new Player[]{}));
-        visiblePlayers.add(player);
+        plugin.getEssentials().removeCustomPlayer(player);
     }
 
     public void showDiscordPlayer(DiscordPlayer player, Player target) {
         player.createFakeEntity(target);
     }
+
     public void hideDiscordPlayer(DiscordPlayer player, Player target) {
         player.destroyFakeEntity(target);
     }
@@ -106,6 +110,7 @@ public class DiscordPlayerManager extends ListenerAdapter {
     public DiscordPlayer getDiscordPlayer(Member member) {
         return cachedPlayers.computeIfAbsent(member.getIdLong(), id -> new DiscordPlayer(member));
     }
+
     @Nullable
     public DiscordPlayer getDiscordPlayer(long userId) {
         return cachedPlayers.getOrDefault(userId, null);

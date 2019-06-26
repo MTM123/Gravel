@@ -17,6 +17,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 
 import javax.annotation.Nonnull;
+import java.util.Arrays;
 
 import static com.earth2me.essentials.I18n.tl;
 
@@ -25,6 +26,11 @@ public class MessageListener extends ListenerAdapter {
     private final CVCancer plugin;
     private final Config config;
     private final MarkdownConverter converter;
+    private static String[] commandsToIgnore = new String[]{"msg", "message", "mention", "mentions"};
+
+    public static boolean shouldIgnoreCommand(String message) {
+        return Arrays.stream(commandsToIgnore).anyMatch(c -> message.startsWith("-" + c));
+    }
 
     public MessageListener(CVCancer plugin, Config config) {
         this.plugin = plugin;
@@ -35,7 +41,7 @@ public class MessageListener extends ListenerAdapter {
     @Override
     public void onPrivateMessageReceived(@Nonnull PrivateMessageReceivedEvent event) {
         if (event.getMessage().getAuthor().isBot()) return;
-        if (event.getMessage().getContentStripped().startsWith("-msg") || event.getMessage().getContentStripped().startsWith("-message"))
+        if (shouldIgnoreCommand(event.getMessage().getContentStripped()))
             return;
 
         DiscordPlayer sender = plugin.getDiscordPlayerManager().getDiscordPlayer(event.getAuthor().getIdLong());
@@ -54,11 +60,6 @@ public class MessageListener extends ListenerAdapter {
             event.getChannel().sendMessage(embed).queue();
             return;
         }
-
-        //We either got a message or a command. Ignore message commands
-        if (event.getMessage().getContentStripped().startsWith("-message") || event.getMessage().getContentStripped().startsWith("-msg"))
-            return;
-
 
         String message = event.getMessage().getContentRaw();
         IMessageRecipient.MessageResponse messageResponse = essSender.getReplyRecipient().onReceiveMessage(essSender,

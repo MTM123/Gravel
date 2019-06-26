@@ -54,18 +54,17 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 public class DiscordPlayer implements Player {
+    private static final FieldAccessor ENTITY_ID = Accessors.getFieldAccessor(
+            MinecraftReflection.getEntityClass(), "entityCount", true);
     private final Integer entityId;
     private Member discordMember;
     private Location emptyLoc;
     private UUID discordUuid;
-    private static final FieldAccessor ENTITY_ID = Accessors.getFieldAccessor(
-            MinecraftReflection.getEntityClass(), "entityCount", true);
 
     DiscordPlayer(Member discordMember) {
         this.discordMember = discordMember;
         discordUuid = UUID.nameUUIDFromBytes(discordMember.getId().getBytes(StandardCharsets.UTF_8));
         emptyLoc = new Location(Bukkit.getWorlds().get(0), 0, 0, 0);
-
         entityId = getUniqueEntityId();
     }
 
@@ -1173,7 +1172,7 @@ public class DiscordPlayer implements Player {
 
     @Override
     public boolean isOnline() {
-        return true;
+        return !CVCancer.getPluginInstance().getPluginConfig().getChatLinkMentionExclusions().contains(discordMember.getIdLong());
     }
 
     @Override

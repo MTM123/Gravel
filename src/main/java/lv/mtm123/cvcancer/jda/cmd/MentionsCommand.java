@@ -10,8 +10,6 @@ import lv.mtm123.cvcancer.players.DiscordPlayerManager;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
-import java.util.Objects;
-
 public class MentionsCommand extends BaseCommand {
 
     private Config config;
@@ -48,6 +46,18 @@ public class MentionsCommand extends BaseCommand {
             return;
         }
 
+        DiscordPlayerManager manager = plugin.getDiscordPlayerManager();
+        DiscordPlayer player = null;
+        if (event.getMember() != null)
+            player = manager.getDiscordPlayer(event.getMember());
+        else
+            player = manager.getDiscordPlayer(event.getAuthor().getIdLong());
+
+        if (player == null) {
+            replyWithEmbed(event, "Do I know you? It doesn't look like it..");
+            return;
+        }
+
         if (toEnable)
             config.getChatLinkMentionExclusions().removeIf(aLong -> aLong.equals(userId));
         else
@@ -58,8 +68,6 @@ public class MentionsCommand extends BaseCommand {
         replyWithEmbed(event, String.format("You have %s MC notifications!",
                 toEnable ? "enabled" : "disabled"));
 
-        DiscordPlayerManager manager = plugin.getDiscordPlayerManager();
-        DiscordPlayer player = manager.getDiscordPlayer(Objects.requireNonNull(event.getMember()));
         if (toEnable) {
             //User enabled back their mentions. Add it
             manager.showDiscordPlayer(player);
