@@ -1,4 +1,4 @@
-package lv.mtm123.cvcancer.cmd;
+package lv.mtm123.cvcancer.jda.cmd;
 
 import co.aikar.commands.BaseCommand;
 import co.aikar.commands.annotation.CommandAlias;

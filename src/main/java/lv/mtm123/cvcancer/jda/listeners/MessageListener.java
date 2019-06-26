@@ -35,6 +35,8 @@ public class MessageListener extends ListenerAdapter {
     @Override
     public void onPrivateMessageReceived(@Nonnull PrivateMessageReceivedEvent event) {
         if (event.getMessage().getAuthor().isBot()) return;
+        if (event.getMessage().getContentStripped().startsWith("-msg") || event.getMessage().getContentStripped().startsWith("-message"))
+            return;
 
         DiscordPlayer sender = plugin.getDiscordPlayerManager().getDiscordPlayer(event.getAuthor().getIdLong());
 
@@ -59,7 +61,8 @@ public class MessageListener extends ListenerAdapter {
 
 
         String message = event.getMessage().getContentRaw();
-        IMessageRecipient.MessageResponse messageResponse = essSender.getReplyRecipient().onReceiveMessage(essSender, message);
+        IMessageRecipient.MessageResponse messageResponse = essSender.getReplyRecipient().onReceiveMessage(essSender,
+                message);
 
         switch (messageResponse) {
             case MESSAGES_IGNORED:
@@ -83,9 +86,11 @@ public class MessageListener extends ListenerAdapter {
                                 && !onlineUser.equals(essSender)
                                 && !onlineUser.equals(recipientUser)) {
                             if (essSender.isMuted() && ess.getSettings().getSocialSpyListenMutedPlayers()) {
-                                onlineUser.sendMessage(tl("socialMutedSpyPrefix") + tl("socialSpyMsgFormat", sender.getName(), recipientUser.getDisplayName(), message));
+                                onlineUser.sendMessage(tl("socialMutedSpyPrefix") + tl("socialSpyMsgFormat",
+                                        sender.getName(), recipientUser.getDisplayName(), message));
                             } else {
-                                onlineUser.sendMessage(tl("socialSpyPrefix") + tl("socialSpyMsgFormat", sender.getName(), recipientUser.getDisplayName(), message));
+                                onlineUser.sendMessage(tl("socialSpyPrefix") + tl("socialSpyMsgFormat",
+                                        sender.getName(), recipientUser.getDisplayName(), message));
                             }
                         }
                     }

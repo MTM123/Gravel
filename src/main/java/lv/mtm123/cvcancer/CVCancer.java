@@ -5,8 +5,9 @@ import co.aikar.commands.JDACommandManager;
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
 import com.earth2me.essentials.Essentials;
-import lv.mtm123.cvcancer.cmd.MentionsCommand;
 import lv.mtm123.cvcancer.config.Config;
+import lv.mtm123.cvcancer.jda.cmd.MentionsCommand;
+import lv.mtm123.cvcancer.jda.cmd.MessageCommand;
 import lv.mtm123.cvcancer.jda.listeners.MessageListener;
 import lv.mtm123.cvcancer.listeners.ChatListener;
 import lv.mtm123.cvcancer.listeners.PlayerListener;
@@ -213,6 +214,7 @@ public final class CVCancer extends JavaPlugin {
 
     private void registerJdaCommands(JDACommandManager commandManager) {
         commandManager.registerCommand(new MentionsCommand(this));
+        commandManager.registerCommand(new MessageCommand(this));
     }
 
 
