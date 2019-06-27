@@ -80,7 +80,7 @@ public class DiscordPlayer extends CustomPlayer {
                             new WrappedGameProfile(getUniqueId(), getName()),
                             0,
                             EnumWrappers.NativeGameMode.SURVIVAL,
-                            WrappedChatComponent.fromText(ChatColor.GRAY + getName()/*.substring(1)*/ + " on Discord")
+                            WrappedChatComponent.fromText(ChatColor.GRAY + "@" + ChatColor.RESET + getDiscordMember().getEffectiveName()/* + " on Discord"*/)
                     )));
                     manager.sendServerPacket(p, playerDisplay.getHandle());
                 }
