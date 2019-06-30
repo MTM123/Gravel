@@ -75,7 +75,7 @@ public class DiscordPlayer extends CustomPlayer {
             try {
                 Essentials ess = plugin.getEssentials();
                 MessageFormat msgFormat = ess.getI18n().getFormatForString("msgFormat");
-                Object[] parse = msgFormat.parse("message");
+                Object[] parse = msgFormat.parse(message);
 
                 String sender = ChatColor.stripColor((String) parse[0]);
                 String nicknamePrefix = ess.getSettings().getNicknamePrefix();
@@ -98,16 +98,30 @@ public class DiscordPlayer extends CustomPlayer {
                             .setFooter("Sent by: " + sender, "https://mc-heads.net/head/" + essSender.getName())
                             .build();
 
-                    getDiscordUser().openPrivateChannel().complete().sendMessage(embed).queue();
+                    Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+                        try {
+                            getDiscordUser().openPrivateChannel().complete().sendMessage(embed).complete();
+                        } catch (Exception e) {
+                            essSender.sendMessage(tl("errorWithMessage", e.getMessage()));
+                        }
+                    });
 
                     return;
                 }
 
             } catch (ParseException e) {
-                //Not an essentials message. Skip fancy formatting.
-            }
+                //Not an essentials DM message. Skip fancy formatting.
+            }//ChatColor.stripColor(message)
 
-            getDiscordUser().openPrivateChannel().complete().sendMessage(ChatColor.stripColor(message)).queue();
+
+            Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+                try {
+                    getDiscordUser().openPrivateChannel().complete().sendMessage(ChatColor.stripColor(message)).complete();
+                } catch (Exception e) {
+                    plugin.getLogger().severe(String.format("Unable to send the following message to %s: %s",
+                            getName(), ChatColor.stripColor(message)));
+                }
+            });
         } catch (Exception ignored) {
         }
     }
