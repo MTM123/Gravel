@@ -1,8 +1,6 @@
 package lv.mtm123.cvcancer.jda.listeners;
 
-import com.earth2me.essentials.Essentials;
 import com.earth2me.essentials.User;
-import com.earth2me.essentials.messaging.IMessageRecipient;
 import lv.mtm123.cvcancer.CVCancer;
 import lv.mtm123.cvcancer.config.Config;
 import lv.mtm123.cvcancer.jda.JdaUtils;
@@ -18,8 +16,6 @@ import org.bukkit.ChatColor;
 
 import javax.annotation.Nonnull;
 import java.util.Arrays;
-
-import static com.earth2me.essentials.I18n.tl;
 
 public class MessageListener extends ListenerAdapter {
 
@@ -61,44 +57,9 @@ public class MessageListener extends ListenerAdapter {
             return;
         }
 
-        String message = event.getMessage().getContentRaw();
-        IMessageRecipient.MessageResponse messageResponse = essSender.getReplyRecipient().onReceiveMessage(essSender,
-                message);
-
-        switch (messageResponse) {
-            case MESSAGES_IGNORED:
-            case SENDER_IGNORED:
-            case UNREACHABLE:
-                MessageEmbed embed = JdaUtils.getReplyEmbedBuilder()
-                        .setDescription("Unable to reply to this person.\n\n" +
-                                "If you want to start a conversation, please use `-msg <name>` in here.")
-                        .setFooter("Requested by: You", event.getAuthor().getEffectiveAvatarUrl()).build();
-
-                event.getChannel().sendMessage(embed).queue();
-                break;
-            default:
-                User recipientUser = plugin.getEssentials().getUser(essSender.getReplyRecipient().getName());
-                // Dont spy on chats involving socialspy exempt players
-                if (!essSender.isAuthorized("essentials.chat.spy.exempt") && recipientUser != null && !recipientUser.isAuthorized("essentials.chat.spy.exempt")) {
-                    Essentials ess = plugin.getEssentials();
-                    for (User onlineUser : ess.getOnlineUsers()) {
-                        if (onlineUser.isSocialSpyEnabled()
-                                // Don't send socialspy messages to message sender/receiver to prevent spam
-                                && !onlineUser.equals(essSender)
-                                && !onlineUser.equals(recipientUser)) {
-                            if (essSender.isMuted() && ess.getSettings().getSocialSpyListenMutedPlayers()) {
-                                onlineUser.sendMessage(tl("socialMutedSpyPrefix") + tl("socialSpyMsgFormat",
-                                        sender.getName(), recipientUser.getDisplayName(), message));
-                            } else {
-                                onlineUser.sendMessage(tl("socialSpyPrefix") + tl("socialSpyMsgFormat",
-                                        sender.getName(), recipientUser.getDisplayName(), message));
-                            }
-                        }
-                    }
-                }
-                break;
-        }
+        sender.replyToPrivateMessage(event.getChannel(), event.getMessage().getContentRaw(), essSender);
     }
+
 
     @Override
     public void onGuildMessageReceived(@Nonnull GuildMessageReceivedEvent event) {

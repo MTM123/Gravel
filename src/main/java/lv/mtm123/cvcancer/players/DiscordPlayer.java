@@ -5,12 +5,14 @@ import com.comphenix.protocol.wrappers.EnumWrappers;
 import com.comphenix.protocol.wrappers.PlayerInfoData;
 import com.comphenix.protocol.wrappers.WrappedChatComponent;
 import com.comphenix.protocol.wrappers.WrappedGameProfile;
+import com.earth2me.essentials.Essentials;
+import com.earth2me.essentials.messaging.IMessageRecipient;
+import lv.mtm123.cvcancer.CVCancer;
 import lv.mtm123.cvcancer.config.Config;
+import lv.mtm123.cvcancer.jda.JdaUtils;
 import lv.mtm123.cvcancer.players.packets.WrapperPlayServerPlayerInfo;
 import net.dv8tion.jda.api.JDA;
-import net.dv8tion.jda.api.entities.Member;
-import net.dv8tion.jda.api.entities.TextChannel;
-import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.user.update.UserUpdateNameEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.bukkit.Bukkit;
@@ -25,6 +27,7 @@ import java.util.Collections;
 import java.util.Objects;
 import java.util.UUID;
 
+import static com.earth2me.essentials.I18n.tl;
 import static lv.mtm123.cvcancer.CVCancer.getPluginInstance;
 
 public class DiscordPlayer extends CustomPlayer {
@@ -33,9 +36,11 @@ public class DiscordPlayer extends CustomPlayer {
     private JDA jda;
     private TextChannel chatLinkChannel;
     private Config pluginConfig;
+    private CVCancer plugin;
 
     DiscordPlayer(long memberId) {
-        jda = getPluginInstance().getJda();
+        plugin = getPluginInstance();
+        jda = plugin.getJda();
         assert jda != null;
         this.pluginConfig = getPluginInstance().getPluginConfig();
         this.chatLinkChannel = jda.getTextChannelById(pluginConfig.getChatLinkChannel());
@@ -145,4 +150,48 @@ public class DiscordPlayer extends CustomPlayer {
             }
         }
     }
+
+    public void replyToPrivateMessage(MessageChannel channel, String msg, com.earth2me.essentials.User essSender) {
+        IMessageRecipient.MessageResponse messageResponse = essSender.getReplyRecipient().onReceiveMessage(essSender,
+                msg);
+
+        switch (messageResponse) {
+            case MESSAGES_IGNORED:
+            case SENDER_IGNORED:
+            case UNREACHABLE:
+                MessageEmbed embed = JdaUtils.getReplyEmbedBuilder()
+                        .setDescription("Unable to reply to this person.\n\n" +
+                                "If you want to start a conversation, please use `-msg <name>` in here.")
+                        .setFooter("Requested by: You", getDiscordUser().getEffectiveAvatarUrl()).build();
+
+                channel.sendMessage(embed).queue();
+                break;
+            default:
+                com.earth2me.essentials.User recipientUser =
+                        plugin.getEssentials().getUser(essSender.getReplyRecipient().getName());
+                // Dont spy on chats involving socialspy exempt players
+                boolean shouldSocialSpy =
+                        !essSender.isAuthorized("essentials.chat.spy.exempt") &&
+                                recipientUser != null && !recipientUser.isAuthorized("essentials.chat.spy.exempt");
+                if (shouldSocialSpy) {
+                    Essentials ess = plugin.getEssentials();
+                    for (com.earth2me.essentials.User onlineUser : ess.getOnlineUsers()) {
+                        if (onlineUser.isSocialSpyEnabled()
+                                // Don't send socialspy messages to message sender/receiver to prevent spam
+                                && !onlineUser.equals(essSender)
+                                && !onlineUser.equals(recipientUser)) {
+                            if (essSender.isMuted() && ess.getSettings().getSocialSpyListenMutedPlayers()) {
+                                onlineUser.sendMessage(tl("socialMutedSpyPrefix") + tl("socialSpyMsgFormat",
+                                        getName(), recipientUser.getDisplayName(), msg));
+                            } else {
+                                onlineUser.sendMessage(tl("socialSpyPrefix") + tl("socialSpyMsgFormat",
+                                        getName(), recipientUser.getDisplayName(), msg));
+                            }
+                        }
+                    }
+                }
+                break;
+        }
+    }
+
 }

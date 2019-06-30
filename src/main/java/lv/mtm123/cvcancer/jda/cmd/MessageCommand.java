@@ -21,8 +21,13 @@ public class MessageCommand extends BaseCommand {
 
     @CommandAlias("msg|message")
     public void execute(MessageReceivedEvent event, @Single String player, String otherText) {
-        replyWithEmbed(event, "You have entered wrong syntax.\n" +
-                "Correct syntax is `-msg <minecraft name>`");
+        execute(event, player);
+
+        DiscordPlayer sender = plugin.getDiscordPlayerManager().getDiscordPlayer(event.getAuthor().getIdLong());
+        User essSender = plugin.getEssentials().getUser(sender);
+        if (sender != null && essSender != null) {
+            sender.replyToPrivateMessage(event.getChannel(), otherText, essSender);
+        }
     }
 
     @CommandAlias("msg|message")
