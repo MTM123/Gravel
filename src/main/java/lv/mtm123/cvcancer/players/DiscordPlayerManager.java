@@ -58,7 +58,7 @@ public class DiscordPlayerManager extends ListenerAdapter {
             ArrayList<DiscordPlayer> players =
                     link.getMembers().stream()
                             .filter(m -> !m.getUser().isBot())
-                            .filter(m -> !config.getChatLinkMentionExclusions().contains(m.getIdLong()))
+                            .filter(m -> config.canReceiveMentions(m.getIdLong()))
                             .map(this::getDiscordPlayer)
                             .collect(Collectors.toCollection(ArrayList::new));
 

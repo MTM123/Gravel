@@ -23,7 +23,7 @@ public class MentionsCommand extends BaseCommand {
     @CommandAlias("mention|mentions")
     public void execute(MessageReceivedEvent event) {
         long userId = event.getAuthor().getIdLong();
-        boolean isExcluded = config.getChatLinkMentionExclusions().contains(userId);
+        boolean isExcluded = !config.canReceiveMentions(userId);
 
         replyWithEmbed(event, String.format(
                 "You have MC notifications %s.\n" +
@@ -38,7 +38,7 @@ public class MentionsCommand extends BaseCommand {
     @CommandAlias("mention|mentions")
     public void execute(MessageReceivedEvent event, boolean toEnable) {
         long userId = event.getAuthor().getIdLong();
-        boolean isExcluded = config.getChatLinkMentionExclusions().contains(userId);
+        boolean isExcluded = !config.canReceiveMentions(userId);
 
         if (toEnable == !isExcluded) {
             replyWithEmbed(event, String.format("You already have MC notifications turned %s!",

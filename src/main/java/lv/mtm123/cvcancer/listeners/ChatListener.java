@@ -66,7 +66,7 @@ public class ChatListener implements Listener {
         TextChannel channel = jda.getTextChannelById(config.getChatLinkChannel());
         if (channel != null) {
             channel.getMembers().stream()
-                    .filter(m -> !config.getChatLinkMentionExclusions().contains(m.getIdLong()))
+                    .filter(m -> config.canReceiveMentions(m.getIdLong()))
                     .forEach(m -> newMsg[0] = newMsg[0].replace("@" + m.getEffectiveName(), m.getAsMention()));
 
             //Just in case
