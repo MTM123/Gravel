@@ -23,6 +23,8 @@ import org.jetbrains.annotations.NotNull;
 import javax.annotation.Nonnull;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.StandardCharsets;
+import java.text.MessageFormat;
+import java.text.ParseException;
 import java.util.Collections;
 import java.util.Objects;
 import java.util.UUID;
@@ -70,6 +72,41 @@ public class DiscordPlayer extends CustomPlayer {
     @Override
     public void sendRawMessage(String message) {
         try {
+            try {
+                Essentials ess = plugin.getEssentials();
+                MessageFormat msgFormat = ess.getI18n().getFormatForString("msgFormat");
+                Object[] parse = msgFormat.parse("message");
+
+                String sender = ChatColor.stripColor((String) parse[0]);
+                String nicknamePrefix = ess.getSettings().getNicknamePrefix();
+                if (sender.startsWith(nicknamePrefix))
+                    sender = sender.substring(nicknamePrefix.length());
+
+                String content = ChatColor.stripColor((String) parse[2]);
+
+                String finalSender = sender;
+                com.earth2me.essentials.User essSender = ess.getOnlinePlayers().stream()
+                        .map(p -> ess.getUser(p.getUniqueId()))
+                        .filter(p -> plugin.getPlayerDiscordDisplayName(p.getBase()).equals(finalSender))
+                        .findFirst().orElse(null);
+
+                if (essSender != null) {
+                    //We got our sender so now we build a fancy embed for the message.
+
+                    MessageEmbed embed = JdaUtils.getReplyEmbedBuilder()
+                            .setDescription(content)
+                            .setFooter("Sent by: " + sender, "https://mc-heads.net/head/" + essSender.getName())
+                            .build();
+
+                    getDiscordUser().openPrivateChannel().complete().sendMessage(embed).queue();
+
+                    return;
+                }
+
+            } catch (ParseException e) {
+                //Not an essentials message. Skip fancy formatting.
+            }
+
             getDiscordUser().openPrivateChannel().complete().sendMessage(ChatColor.stripColor(message)).queue();
         } catch (Exception ignored) {
         }
