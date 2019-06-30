@@ -43,4 +43,8 @@ public class Config {
         return webhookUrl;
     }
 
+    public boolean canReceiveMentions(long id) {
+        return !getChatLinkMentionExclusions().contains(id);
+    }
+
 }

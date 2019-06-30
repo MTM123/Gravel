@@ -66,9 +66,7 @@ public class DiscordPlayerManager extends ListenerAdapter {
             for (DiscordPlayer player : players) {
                 prepareEssentialsPlayer(player);
 
-                if (!visiblePlayers.contains(player)) {
-                    showDiscordPlayer(player);
-                }
+                if (!visiblePlayers.contains(player)) showDiscordPlayer(player);
             }
         }
     }
@@ -78,6 +76,7 @@ public class DiscordPlayerManager extends ListenerAdapter {
         plugin.getEssentials().addCustomPlayer(player);
         User user = plugin.getEssentials().getUser(player);
         user.setNPC(true);
+        user.setAcceptingPay(false);
         user.setTeleportEnabled(false);
         user.setAutoTeleportEnabled(false);
         user.setLastMessageReplyRecipient(false);
@@ -108,7 +107,7 @@ public class DiscordPlayerManager extends ListenerAdapter {
     }
 
     public DiscordPlayer getDiscordPlayer(Member member) {
-        return cachedPlayers.computeIfAbsent(member.getIdLong(), id -> new DiscordPlayer(member));
+        return cachedPlayers.computeIfAbsent(member.getIdLong(), id -> new DiscordPlayer(member.getIdLong()));
     }
 
     @Nullable
