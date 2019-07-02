@@ -3,6 +3,7 @@ package lv.mtm123.cvcancer.jda.listeners;
 import lv.mtm123.cvcancer.CVCancer;
 import lv.mtm123.cvcancer.config.Config;
 import lv.mtm123.cvcancer.jda.MarkdownConverter;
+import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.md_5.bungee.api.chat.*;
@@ -10,6 +11,8 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 
 import javax.annotation.Nonnull;
+import java.util.ArrayList;
+import java.util.stream.Collectors;
 
 public class MessageListener extends ListenerAdapter {
 
@@ -34,8 +37,14 @@ public class MessageListener extends ListenerAdapter {
         String name = event.getMember() == null
                 ? event.getAuthor().getName()
                 : event.getMember().getEffectiveName();
-        String message = ChatColor.translateAlternateColorCodes('&',
-                converter.compute(event.getMessage().getContentDisplay()));
+        final String[] message = {ChatColor.translateAlternateColorCodes('&',
+                converter.compute(event.getMessage().getContentDisplay()))};
+
+        ArrayList<Object> attachmentUrls = event.getMessage().getAttachments().stream()
+                .map(this::getEffectiveUrl).collect(Collectors.toCollection(ArrayList::new));
+
+        //Add attachments to the end of the message
+        attachmentUrls.forEach(e -> message[0] += " " + e);
 
         Bukkit.getScheduler().runTask(plugin,
                 () -> {
@@ -46,10 +55,14 @@ public class MessageListener extends ListenerAdapter {
                                             ChatColor.GRAY + "Click here to mention this user")}))
                             .event(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "@" + name + " "))
                             .append(" ")
-                            .append(TextComponent.fromLegacyText(message), ComponentBuilder.FormatRetention.NONE)
+                            .append(TextComponent.fromLegacyText(message[0].trim()), ComponentBuilder.FormatRetention.NONE)
                             .create();
                     Bukkit.broadcast(msg);
                 });
+    }
+
+    private Object getEffectiveUrl(Message.Attachment a) {
+        return a.isImage() ? a.getProxyUrl() : a.getUrl();
     }
 
 }
