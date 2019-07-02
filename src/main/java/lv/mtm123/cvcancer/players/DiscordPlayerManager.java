@@ -107,7 +107,7 @@ public class DiscordPlayerManager extends ListenerAdapter {
     }
 
     public DiscordPlayer getDiscordPlayer(Member member) {
-        return cachedPlayers.computeIfAbsent(member.getIdLong(), id -> new DiscordPlayer(member.getIdLong()));
+        return cachedPlayers.computeIfAbsent(member.getIdLong(), DiscordPlayer::new);
     }
 
     @Nullable
