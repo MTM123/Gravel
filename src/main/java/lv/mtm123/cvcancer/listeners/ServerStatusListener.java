@@ -28,12 +28,10 @@ public class ServerStatusListener implements Listener {
     private final JDA jda;
     private final long statusChannelId;
     private final long statusMessage;
-    private final Config config;
 
     public ServerStatusListener(CVCancer plugin, JDA jda, Config config) {
         this.plugin = plugin;
         this.jda = jda;
-        this.config = config;
 
         statusChannelId = config.getStatusChannel();
         TextChannel channel = jda.getTextChannelById(statusChannelId);
@@ -45,6 +43,8 @@ public class ServerStatusListener implements Listener {
                 ? channel.getLatestMessageIdLong()
                 : channel.sendMessage("Temporary message, please stand by").complete().getIdLong();
 
+        //Update stats when the bot starts
+        update();
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)

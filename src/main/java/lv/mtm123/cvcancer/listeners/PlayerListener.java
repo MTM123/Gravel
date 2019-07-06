@@ -1,8 +1,10 @@
 package lv.mtm123.cvcancer.listeners;
 
 import lv.mtm123.cvcancer.CVCancer;
+import lv.mtm123.cvcancer.players.DiscordPlayerManager;
 import net.ess3.api.events.AfkStatusChangeEvent;
 import net.ess3.api.events.NickChangeEvent;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -20,6 +22,11 @@ public class PlayerListener implements Listener {
     @EventHandler(ignoreCancelled = true)
     public void onPlayerJoin(PlayerJoinEvent event) {
         event.getPlayer().setPlayerListName(plugin.getPlayerDiscordDisplayName(event.getPlayer()));
+
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            DiscordPlayerManager manager = plugin.getDiscordPlayerManager();
+            manager.getVisiblePlayers().forEach(p -> manager.showDiscordPlayer(p, event.getPlayer()));
+        }, 20L);
     }
 
     @EventHandler(ignoreCancelled = true)

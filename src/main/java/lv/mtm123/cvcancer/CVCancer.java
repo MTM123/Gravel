@@ -1,13 +1,21 @@
 package lv.mtm123.cvcancer;
 
+import co.aikar.commands.CommandConfig;
+import co.aikar.commands.JDACommandManager;
+import com.comphenix.protocol.ProtocolLibrary;
+import com.comphenix.protocol.ProtocolManager;
 import com.earth2me.essentials.Essentials;
 import lv.mtm123.cvcancer.config.Config;
+import lv.mtm123.cvcancer.jda.cmd.MentionsCommand;
+import lv.mtm123.cvcancer.jda.cmd.MessageCommand;
 import lv.mtm123.cvcancer.jda.listeners.MessageListener;
 import lv.mtm123.cvcancer.listeners.ChatListener;
 import lv.mtm123.cvcancer.listeners.PlayerListener;
 import lv.mtm123.cvcancer.listeners.ServerStatusListener;
+import lv.mtm123.cvcancer.players.DiscordPlayerManager;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
+import net.dv8tion.jda.api.OnlineStatus;
 import ninja.leaping.configurate.commented.SimpleCommentedConfigurationNode;
 import ninja.leaping.configurate.objectmapping.ObjectMapper;
 import ninja.leaping.configurate.objectmapping.ObjectMappingException;
@@ -26,21 +34,46 @@ import javax.annotation.Nullable;
 import javax.security.auth.login.LoginException;
 import java.io.File;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.EnumMap;
 import java.util.Map;
 import java.util.logging.Level;
 
 public final class CVCancer extends JavaPlugin {
-
+    private static CVCancer instance;
+    private ProtocolManager protocolManager;
     private Config config;
     @Nullable
     private JDA jda;
     private Essentials essentials;
+    private ObjectMapper<Config>.BoundInstance configMapperInstance;
+    private YAMLConfigurationLoader configLoader;
+    private DiscordPlayerManager discordPlayerManager;
+
+    public static CVCancer getPluginInstance() {
+        return instance;
+    }
+
+    @Nullable
+    public JDA getJda() {
+        return jda;
+    }
+
+    public Config getPluginConfig() {
+        return config;
+    }
+
+    public ObjectMapper<Config>.BoundInstance getConfigMapperInstance() {
+        return configMapperInstance;
+    }
 
     @Override
     public void onEnable() {
+        instance = this;
+        protocolManager = ProtocolLibrary.getProtocolManager();
         if (!getServer().getPluginManager().isPluginEnabled("Essentials")) {
             getLogger().log(Level.SEVERE, "Essentials not found! Disabling...");
+            setEnabled(false);
             return;
         }
         essentials = (Essentials) getServer().getPluginManager().getPlugin("Essentials");
@@ -54,6 +87,16 @@ public final class CVCancer extends JavaPlugin {
             return;
         }
 
+
+        if (config.getStatusChannel() == 0) {
+            warnErrorConfigProblem("Server status channel");
+            return;
+        }
+        if (config.getChatLinkChannel() == 0) {
+            warnErrorConfigProblem("Server chat link channel");
+            return;
+        }
+
         initJDA(config.getBotToken());
 
         if (jda == null) {
@@ -62,6 +105,29 @@ public final class CVCancer extends JavaPlugin {
             return;
         }
 
+        if (checkJdaChannels()) return;
+        registerEvents();
+    }
+
+    private boolean checkJdaChannels() {
+        assert jda != null;
+        if (jda.getTextChannelById(config.getStatusChannel()) == null) {
+            warnErrorConfigProblem("Server status channel");
+            return true;
+        }
+        if (jda.getTextChannelById(config.getChatLinkChannel()) == null) {
+            warnErrorConfigProblem("Server chat link channel");
+            return true;
+        }
+        return false;
+    }
+
+    private void warnErrorConfigProblem(String config) {
+        getLogger().log(Level.SEVERE, config + " is not configured. Please check your config!");
+        setEnabled(false);
+    }
+
+    private void registerEvents() {
         Bukkit.getPluginManager().registerEvents(new PlayerListener(this), this);
         Bukkit.getPluginManager().registerEvents(new ChatListener(this, jda, config), this);
         Bukkit.getPluginManager().registerEvents(new ServerStatusListener(this, jda, config), this);
@@ -70,8 +136,17 @@ public final class CVCancer extends JavaPlugin {
     @Override
     public void onDisable() {
         if (jda != null) {
-            jda.shutdownNow();
+            try {
+                jda.shutdownNow();
+            } catch (Exception ignored) {
+
+            }
         }
+        instance = null;
+    }
+
+    public YAMLConfigurationLoader getConfigLoader() {
+        return configLoader;
     }
 
     private Config loadConfig() throws ObjectMappingException, IOException {
@@ -83,9 +158,12 @@ public final class CVCancer extends JavaPlugin {
 
         File cfgFile = new File(getDataFolder().getAbsoluteFile(), "config.yml");
 
-        ObjectMapper<Config>.BoundInstance instance = ObjectMapper.forClass(Config.class).bindToNew();
-        YAMLConfigurationLoader loader = YAMLConfigurationLoader.builder()
+        configMapperInstance = ObjectMapper.forClass(Config.class).bindToNew();
+        ObjectMapper<Config>.BoundInstance instance = configMapperInstance;
+
+        configLoader = YAMLConfigurationLoader.builder()
                 .setFile(cfgFile).setFlowStyle(DumperOptions.FlowStyle.BLOCK).build();
+        YAMLConfigurationLoader loader = configLoader;
 
         //Pretty sure I'm doing this part wrong
         SimpleCommentedConfigurationNode node = SimpleCommentedConfigurationNode.root();
@@ -97,17 +175,46 @@ public final class CVCancer extends JavaPlugin {
         instance.populate(loader.load());
 
         return instance.getInstance();
+    }
 
+    public void savePluginConfig() {
+        SimpleCommentedConfigurationNode node = SimpleCommentedConfigurationNode.root();
+
+        try {
+            configMapperInstance.serialize(node);
+            configLoader.save(node);
+        } catch (IOException | ObjectMappingException e) {
+            getLogger().severe("An error occured while trying to save the config: " + e.getMessage());
+        }
+    }
+
+
+    public DiscordPlayerManager getDiscordPlayerManager() {
+        return discordPlayerManager;
     }
 
     private void initJDA(String token) {
         try {
             jda = new JDABuilder(token).build();
             jda.awaitReady();
+            jda.getPresence().setStatus(OnlineStatus.DO_NOT_DISTURB);
+
+            JDACommandManager commandManager = new JDACommandManager(jda);
+            //Set prefix of the bot commands
+            commandManager.setConfigProvider((CommandConfig) () -> Collections.singletonList("-"));
+            registerJdaCommands(commandManager);
+
             jda.addEventListener(new MessageListener(this, config));
+            discordPlayerManager = new DiscordPlayerManager(this, config);
+            jda.addEventListener(discordPlayerManager);
         } catch (LoginException | InterruptedException e) {
             getLogger().severe("Unable to init JDA. Reason: " + e.getMessage());
         }
+    }
+
+    private void registerJdaCommands(JDACommandManager commandManager) {
+        commandManager.registerCommand(new MentionsCommand(this));
+        commandManager.registerCommand(new MessageCommand(this));
     }
 
 
@@ -160,4 +267,7 @@ public final class CVCancer extends JavaPlugin {
         return nickname == null ? player.getName() : ChatColor.stripColor(nickname);
     }
 
+    public ProtocolManager getProtocolManager() {
+        return protocolManager;
+    }
 }

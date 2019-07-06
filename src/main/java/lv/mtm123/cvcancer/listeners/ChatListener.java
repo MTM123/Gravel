@@ -22,18 +22,18 @@ import java.util.Objects;
 import java.util.logging.Level;
 
 public class ChatListener implements Listener {
-
     private final CVCancer plugin;
     private final JDA jda;
     private final Config config;
     private final List<Emote> emotes;
     private WebhookClient client;
+    private TextChannel channel;
 
     public ChatListener(CVCancer plugin, JDA jda, Config config) {
         this.plugin = plugin;
         this.jda = jda;
-        emotes = Objects.requireNonNull(jda.getTextChannelById(config.getChatLinkChannel())).getGuild().getEmotes();
-
+        this.channel = jda.getTextChannelById(config.getChatLinkChannel());
+        this.emotes = Objects.requireNonNull(channel).getGuild().getEmotes();
         this.config = config;
 
         try {
@@ -65,8 +65,16 @@ public class ChatListener implements Listener {
         final String[] newMsg = {msg};
         TextChannel channel = jda.getTextChannelById(config.getChatLinkChannel());
         if (channel != null) {
-            channel.getMembers().forEach(m -> newMsg[0] = newMsg[0].replace("@" + m.getEffectiveName(),
-                    m.getAsMention()));
+            channel.getMembers().stream()
+                    .filter(m -> config.canReceiveMentions(m.getIdLong()))
+                    .forEach(m -> newMsg[0] = newMsg[0].replace("@" + m.getEffectiveName(), m.getAsMention()));
+
+            //Just in case
+            config.getChatLinkMentionExclusions().stream()
+                    .map(channel.getGuild()::getMemberById)
+                    .filter(Objects::nonNull)
+                    .forEach(mm ->
+                            newMsg[0] = newMsg[0].replace(mm.getAsMention(), "@" + mm.getEffectiveName()));
         }
         return newMsg[0];
     }
