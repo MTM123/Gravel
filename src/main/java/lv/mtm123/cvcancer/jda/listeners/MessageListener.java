@@ -61,7 +61,7 @@ public class MessageListener extends ListenerAdapter {
                 });
     }
 
-    private Object getEffectiveUrl(Message.Attachment a) {
+    private String getEffectiveUrl(Message.Attachment a) {
         return a.isImage() ? a.getProxyUrl() : a.getUrl();
     }
 
