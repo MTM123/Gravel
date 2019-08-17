@@ -1,8 +1,8 @@
-package lv.mtm123.cvcancer.jda.listeners;
+package lv.mtm123.gravel.jda.listeners;
 
-import lv.mtm123.cvcancer.CVCancer;
-import lv.mtm123.cvcancer.config.Config;
-import lv.mtm123.cvcancer.jda.MarkdownConverter;
+import lv.mtm123.gravel.Gravel;
+import lv.mtm123.gravel.config.Config;
+import lv.mtm123.gravel.jda.MarkdownConverter;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
@@ -16,11 +16,11 @@ import java.util.stream.Collectors;
 
 public class MessageListener extends ListenerAdapter {
 
-    private final CVCancer plugin;
+    private final Gravel plugin;
     private final Config config;
     private final MarkdownConverter converter;
 
-    public MessageListener(CVCancer plugin, Config config) {
+    public MessageListener(Gravel plugin, Config config) {
         this.plugin = plugin;
         this.config = config;
         this.converter = new MarkdownConverter();

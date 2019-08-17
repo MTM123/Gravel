@@ -1,11 +1,11 @@
-package lv.mtm123.cvcancer.listeners;
+package lv.mtm123.gravel.listeners;
 
 import club.minnced.discord.webhook.WebhookClient;
 import club.minnced.discord.webhook.WebhookClientBuilder;
 import club.minnced.discord.webhook.send.WebhookMessage;
 import club.minnced.discord.webhook.send.WebhookMessageBuilder;
-import lv.mtm123.cvcancer.CVCancer;
-import lv.mtm123.cvcancer.config.Config;
+import lv.mtm123.gravel.Gravel;
+import lv.mtm123.gravel.config.Config;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Emote;
 import net.dv8tion.jda.api.entities.TextChannel;
@@ -23,13 +23,13 @@ import java.util.logging.Level;
 
 public class ChatListener implements Listener {
 
-    private final CVCancer plugin;
+    private final Gravel plugin;
     private final JDA jda;
     private final Config config;
     private final List<Emote> emotes;
     private WebhookClient client;
 
-    public ChatListener(CVCancer plugin, JDA jda, Config config) {
+    public ChatListener(Gravel plugin, JDA jda, Config config) {
         this.plugin = plugin;
         this.jda = jda;
         emotes = Objects.requireNonNull(jda.getTextChannelById(config.getChatLinkChannel())).getGuild().getEmotes();

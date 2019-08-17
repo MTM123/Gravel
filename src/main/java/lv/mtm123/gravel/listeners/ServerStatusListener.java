@@ -1,7 +1,7 @@
-package lv.mtm123.cvcancer.listeners;
+package lv.mtm123.gravel.listeners;
 
-import lv.mtm123.cvcancer.CVCancer;
-import lv.mtm123.cvcancer.config.Config;
+import lv.mtm123.gravel.Gravel;
+import lv.mtm123.gravel.config.Config;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.MessageBuilder;
@@ -24,13 +24,13 @@ import java.util.stream.Collectors;
 
 public class ServerStatusListener implements Listener {
 
-    private final CVCancer plugin;
+    private final Gravel plugin;
     private final JDA jda;
     private final long statusChannelId;
     private final long statusMessage;
     private final Config config;
 
-    public ServerStatusListener(CVCancer plugin, JDA jda, Config config) {
+    public ServerStatusListener(Gravel plugin, JDA jda, Config config) {
         this.plugin = plugin;
         this.jda = jda;
         this.config = config;

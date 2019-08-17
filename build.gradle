@@ -21,7 +21,7 @@ apply plugin: "com.github.johnrengelman.shadow"
 
 shadowJar{
     minimize()
-    relocate 'ninja.leaping.configurate', 'lv.mtm123.cvcancer.ninja.leaping.configurate'
+    relocate 'ninja.leaping.configurate', 'lv.mtm123.gravel.ninja.leaping.configurate'
 }
 
 build.dependsOn shadowJar
@@ -49,10 +49,10 @@ repositories {
 
 dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.12'
-    compileOnly 'com.destroystokyo.paper:paper-api:1.13.2-R0.1-SNAPSHOT'
+    compileOnly 'com.destroystokyo.paper:paper-api:1.14.4-R0.1-SNAPSHOT'
     compile 'net.dv8tion:JDA:4.ALPHA.0_98'
     compileOnly 'net.ess3:EssentialsX:2.16.1'
-    compile 'org.spongepowered:configurate-yaml:3.4-SNAPSHOT'
+    compile 'org.spongepowered:configurate-yaml:3.7-SNAPSHOT'
     compile 'club.minnced:discord-webhooks:0.1.7'
 }
 

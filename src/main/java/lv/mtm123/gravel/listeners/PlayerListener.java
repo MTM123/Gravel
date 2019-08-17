@@ -1,6 +1,6 @@
-package lv.mtm123.cvcancer.listeners;
+package lv.mtm123.gravel.listeners;
 
-import lv.mtm123.cvcancer.CVCancer;
+import lv.mtm123.gravel.Gravel;
 import net.ess3.api.events.AfkStatusChangeEvent;
 import net.ess3.api.events.NickChangeEvent;
 import org.bukkit.ChatColor;
@@ -11,9 +11,9 @@ import org.bukkit.event.player.PlayerJoinEvent;
 
 public class PlayerListener implements Listener {
 
-    private final CVCancer plugin;
+    private final Gravel plugin;
 
-    public PlayerListener(CVCancer plugin) {
+    public PlayerListener(Gravel plugin) {
         this.plugin = plugin;
     }
 

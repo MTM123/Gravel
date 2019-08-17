@@ -1,4 +1,4 @@
-package lv.mtm123.cvcancer.jda;
+package lv.mtm123.gravel.jda;
 
 import gnu.trove.map.TIntObjectMap;
 import gnu.trove.map.hash.TIntObjectHashMap;

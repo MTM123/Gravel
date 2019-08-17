@@ -1,6 +1,6 @@
-name: CVCancer
+name: Gravel
 version: @version@
-main: lv.mtm123.cvcancer.CVCancer
+main: lv.mtm123.gravel.Gravel
 api-version: 1.13
 authors: [MTM123]
 softdepend: [Essentials]

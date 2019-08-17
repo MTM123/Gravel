@@ -1,4 +1,4 @@
-package lv.mtm123.cvcancer.config;
+package lv.mtm123.gravel.config;
 
 import ninja.leaping.configurate.objectmapping.Setting;
 import ninja.leaping.configurate.objectmapping.serialize.ConfigSerializable;

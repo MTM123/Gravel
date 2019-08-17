@@ -1,11 +1,11 @@
-package lv.mtm123.cvcancer;
+package lv.mtm123.gravel;
 
 import com.earth2me.essentials.Essentials;
-import lv.mtm123.cvcancer.config.Config;
-import lv.mtm123.cvcancer.jda.listeners.MessageListener;
-import lv.mtm123.cvcancer.listeners.ChatListener;
-import lv.mtm123.cvcancer.listeners.PlayerListener;
-import lv.mtm123.cvcancer.listeners.ServerStatusListener;
+import lv.mtm123.gravel.config.Config;
+import lv.mtm123.gravel.jda.listeners.MessageListener;
+import lv.mtm123.gravel.listeners.ChatListener;
+import lv.mtm123.gravel.listeners.PlayerListener;
+import lv.mtm123.gravel.listeners.ServerStatusListener;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import ninja.leaping.configurate.commented.SimpleCommentedConfigurationNode;
@@ -30,7 +30,7 @@ import java.util.EnumMap;
 import java.util.Map;
 import java.util.logging.Level;
 
-public final class CVCancer extends JavaPlugin {
+public final class Gravel extends JavaPlugin {
 
     private Config config;
     @Nullable
@@ -122,8 +122,8 @@ public final class CVCancer extends JavaPlugin {
 
         carpetMaterials.put(Material.INK_SAC, Material.BLACK_CARPET);
         carpetMaterials.put(Material.BONE_MEAL, Material.WHITE_CARPET);
-        carpetMaterials.put(Material.ROSE_RED, Material.RED_CARPET);
-        carpetMaterials.put(Material.CACTUS_GREEN, Material.GREEN_CARPET);
+        carpetMaterials.put(Material.RED_DYE, Material.RED_CARPET);
+        carpetMaterials.put(Material.GREEN_DYE, Material.GREEN_CARPET);
         carpetMaterials.put(Material.COCOA_BEANS, Material.BROWN_CARPET);
         carpetMaterials.put(Material.LAPIS_LAZULI, Material.BLUE_CARPET);
         carpetMaterials.put(Material.MAGENTA_DYE, Material.MAGENTA_CARPET);
@@ -132,7 +132,7 @@ public final class CVCancer extends JavaPlugin {
         carpetMaterials.put(Material.GRAY_DYE, Material.GRAY_CARPET);
         carpetMaterials.put(Material.PINK_DYE, Material.PINK_CARPET);
         carpetMaterials.put(Material.LIME_DYE, Material.LIME_CARPET);
-        carpetMaterials.put(Material.DANDELION_YELLOW, Material.YELLOW_CARPET);
+        carpetMaterials.put(Material.YELLOW_DYE, Material.YELLOW_CARPET);
         carpetMaterials.put(Material.LIGHT_BLUE_DYE, Material.LIGHT_BLUE_CARPET);
         carpetMaterials.put(Material.PURPLE_DYE, Material.PURPLE_CARPET);
         carpetMaterials.put(Material.ORANGE_DYE, Material.ORANGE_CARPET);
